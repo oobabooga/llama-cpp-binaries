@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools >= 68",
+    "setuptools >= 77",
     "cmake",
 ]
 build-backend = "setuptools.build_meta"
@@ -10,7 +10,7 @@ name = "llama_cpp_binaries"
 version = "0.7.0"
 description = "Binaries for llama.cpp server"
 license = "AGPL-3.0-only"
-requires-python = ">= 3.7"
+requires-python = ">= 3.9"
 
 [tool.setuptools.packages.find]
 include = ["llama_cpp_binaries*"]
