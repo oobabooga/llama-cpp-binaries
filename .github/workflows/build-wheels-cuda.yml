@@ -150,7 +150,7 @@ jobs:
           if (!(mamba list cuda)[-1].contains('cuda')) {sleep -s 10; mamba install -y 'cuda' $cudaChannels.TrimEnd().Split()}
           if (!(mamba list cuda)[-1].contains('cuda')) {throw 'CUDA Toolkit failed to install!'}
 
-          python -m pip install build wheel
+          python -m pip install build
 
       - name: Build Wheel
         run: |

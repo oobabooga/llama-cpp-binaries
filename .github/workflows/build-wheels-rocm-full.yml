@@ -145,7 +145,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install build wheel cmake scikit-build ninja
+          python -m pip install build cmake scikit-build ninja
 
       - name: Build Wheel
         run: |
