@@ -4,9 +4,13 @@ import platform
 import shutil
 import subprocess
 
-from setuptools import Extension, find_packages, setup
+from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
-from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
+
+try:
+    from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
+except ModuleNotFoundError:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
 class CMakeExtension(Extension):
