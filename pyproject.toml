@@ -1,0 +1,16 @@
+[build-system]
+requires = [
+    "setuptools >= 70.1",
+    "cmake",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llama_cpp_binaries"
+version = "0.7.0"
+description = "Binaries for llama.cpp server"
+requires-python = ">= 3.7"
+
+[tool.setuptools.packages.find]
+include = ["llama_cpp_binaries*"]
+namespaces = false

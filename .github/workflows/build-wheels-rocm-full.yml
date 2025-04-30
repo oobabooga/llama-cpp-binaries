@@ -169,12 +169,12 @@ jobs:
           $gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102'
           if ([version]$env:ROCM_VERSION -lt [version]'5.5') {$gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030'}
 
-          if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIPBLAS=ON -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
-          if ($env:AVXVER -eq 'AVX512') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIPBLAS=ON -DGGML_AVX512=on -DGPU_TARGETS=$gputargets"}
-          if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIPBLAS=ON -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
+          if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
+          if ($env:AVXVER -eq 'AVX512') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX512=on -DGPU_TARGETS=$gputargets"}
+          if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
           if ($env:AVXVER -eq 'AVX2')
           {
-              $env:CMAKE_ARGS = "-GNinja -DGGML_HIPBLAS=ON -DGPU_TARGETS=$gputargets"
+              $env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGPU_TARGETS=$gputargets"
               $buildtag = "+rocm$env:ROCM_VERSION"
           } else {$buildtag = "+rocm$env:ROCM_VERSION$env:AVXVER"}
 

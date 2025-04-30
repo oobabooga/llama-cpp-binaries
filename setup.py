@@ -6,7 +6,7 @@ import subprocess
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
 
 
 class CMakeExtension(Extension):
@@ -82,15 +82,9 @@ class UniversalBdistWheel(_bdist_wheel):
 
 
 setup(
-    name="llama_cpp_binaries",
-    version="0.7.0",
-    description="Binaries for llama.cpp server",
-    packages=find_packages(),
     ext_modules=[CMakeExtension("llama_cpp_binaries")],
     cmdclass={
         'build_ext': CMakeBuild,
         'bdist_wheel': UniversalBdistWheel
     },
-    package_data={"llama_cpp_binaries": ["bin/*"]},
-    python_requires='>=3.7'
 )
