@@ -46,6 +46,9 @@ class CMakeBuild(build_ext):
                 "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
             ])
 
+        # Disable Curl
+        cmake_args.append("-DLLAMA_CURL=OFF")
+
         # Configure with CMake
         cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args
         subprocess.check_call(cmake_cmd, cwd=build_dir)
