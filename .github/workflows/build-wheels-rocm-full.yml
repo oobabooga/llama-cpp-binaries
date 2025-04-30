@@ -179,7 +179,7 @@ jobs:
           } else {$buildtag = "+rocm$env:ROCM_VERSION$env:AVXVER"}
 
           $env:CMAKE_ARGS = "-DLLAVA_BUILD=off $env:CMAKE_ARGS"
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
           $packageDir = 'llama_cpp_binaries'
 

@@ -117,7 +117,7 @@ jobs:
           if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = '-DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
           if ($env:AVXVER -eq 'AVX512') {$env:CMAKE_ARGS = '-DGGML_AVX512=on'}
           if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = '-DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'}
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DLLAMA_CURL=OFF $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
           $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
 
           $buildtag = "+cpu$env:AVXVER"
