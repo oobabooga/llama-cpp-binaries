@@ -73,7 +73,7 @@ class CMakeBuild(build_ext):
             bin_dir = os.path.join(bin_dir, "Release")
 
         for file in glob.glob(os.path.join(bin_dir, "*")):
-            shutil.copy(file, target_dir, follow_symlinks=False)
+            shutil.copy(file, target_dir, follow_symlinks=True)
 
         # Remove redundant libggml-cuda copies (keep only .so.0)
         for file in os.listdir(target_dir):
