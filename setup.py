@@ -75,6 +75,11 @@ class CMakeBuild(build_ext):
         for file in glob.glob(os.path.join(bin_dir, "*")):
             shutil.copy(file, target_dir, follow_symlinks=False)
 
+        # Remove redundant libggml-cuda copies (keep only .so.0)
+        for file in os.listdir(target_dir):
+            if file.startswith('libggml-cuda.so') and file != 'libggml-cuda.so.0':
+                os.remove(os.path.join(target_dir, file))
+
 
 class UniversalBdistWheel(_bdist_wheel):
     def finalize_options(self):
