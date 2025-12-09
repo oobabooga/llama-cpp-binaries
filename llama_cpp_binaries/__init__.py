@@ -1,5 +1,32 @@
+import json
 import os
 import platform
+
+
+def _restore_symlinks():
+    """Restore symlinks from manifest (wheels don't support symlinks natively)."""
+    bin_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
+    manifest = os.path.join(bin_dir, "_symlinks.json")
+    if not os.path.exists(manifest):
+        return
+    with open(manifest) as f:
+        symlinks = json.load(f)
+    for name, target in symlinks.items():
+        link = os.path.join(bin_dir, name)
+        if not os.path.lexists(link):
+            try:
+                os.symlink(target, link)
+            except OSError:
+                pass
+    try:
+        os.remove(manifest)
+    except OSError:
+        pass  # Read-only filesystem, permissions, etc.
+
+
+if platform.system() != "Windows":
+    _restore_symlinks()
+
 
 def get_binary_path():
     """Return the path to the appropriate llama-server binary"""

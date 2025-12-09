@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 import platform
 import shutil
@@ -72,8 +73,18 @@ class CMakeBuild(build_ext):
         if os.path.exists(os.path.join(bin_dir, "Release")):
             bin_dir = os.path.join(bin_dir, "Release")
 
+        # Copy files, recording symlinks separately to avoid wheel bloat
+        symlinks = {}
         for file in glob.glob(os.path.join(bin_dir, "*")):
-            shutil.copy(file, target_dir, follow_symlinks=True)
+            basename = os.path.basename(file)
+            if os.path.islink(file):
+                symlinks[basename] = os.readlink(file)
+            else:
+                shutil.copy(file, target_dir, follow_symlinks=True)
+
+        if symlinks:
+            with open(os.path.join(target_dir, "_symlinks.json"), "w") as f:
+                json.dump(symlinks, f)
 
 
 class UniversalBdistWheel(_bdist_wheel):
