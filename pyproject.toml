@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llama_cpp_binaries"
-version = "0.74.0"
+version = "0.75.0"
 description = "Binaries for llama.cpp server"
 license = "AGPL-3.0-only"
 requires-python = ">= 3.9"
