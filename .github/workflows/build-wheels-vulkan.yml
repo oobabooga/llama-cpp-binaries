@@ -161,6 +161,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./dist/*.whl
           tag: ${{ inputs.version }}
+          release_name: ${{ inputs.version }}
           file_glob: true
           make_latest: false
           overwrite: true
