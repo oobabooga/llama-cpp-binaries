@@ -165,7 +165,7 @@ jobs:
               $libsToFind = @("cublas64_$cudaMajor.dll", "cudart64_$cudaMajor.dll", "cublasLt64_$cudaMajor.dll")
 
               foreach ($lib in $libsToFind) {
-                  $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH/bin" -Filter $lib -File | Select-Object -First 1
+                  $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH" -Filter $lib -Recurse -File | Select-Object -First 1
                   if ($foundFiles) {
                       Copy-Item -Path $foundFiles.FullName -Destination "$binDir/$lib"
                       Write-Host "Copied $($foundFiles.FullName) to $binDir/$lib"
