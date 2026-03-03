@@ -82,8 +82,8 @@ jobs:
       run:
         shell: pwsh
     env:
-      ROCM_VERSION: '7.2'
-      HIPSDK_INSTALLER_VERSION: '26.Q1'
+      ROCM_VERSION: '6.4'
+      HIPSDK_INSTALLER_VERSION: '24.Q4'
 
     steps:
       - name: Free Disk Space
@@ -117,7 +117,7 @@ jobs:
       - name: Install Windows ROCm SDK
         if: runner.os == 'Windows'
         run: |
-          Invoke-WebRequest -Uri "https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-${env:HIPSDK_INSTALLER_VERSION}-Win11-For-HIP.exe" -OutFile "${env:RUNNER_TEMP}\rocm-install.exe"
+          Invoke-WebRequest -Uri "https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-${env:HIPSDK_INSTALLER_VERSION}-Win10-Win11-For-HIP.exe" -OutFile "${env:RUNNER_TEMP}\rocm-install.exe"
           Start-Process "${env:RUNNER_TEMP}\rocm-install.exe" -ArgumentList '-install' -NoNewWindow -Wait
           $hipPath = (Resolve-Path 'C:\Program Files\AMD\ROCm\*\bin\clang.exe' | Split-Path | Split-Path)
           echo "$hipPath\bin" >> $env:GITHUB_PATH
@@ -127,7 +127,7 @@ jobs:
       - name: Download rocWMMA headers
         if: runner.os == 'Windows'
         run: |
-          curl -o rocwmma.deb "https://repo.radeon.com/rocm/apt/$env:ROCM_VERSION/pool/main/r/rocwmma-dev/rocwmma-dev_2.2.0.70200-43~24.04_amd64.deb"
+          curl -o rocwmma.deb "https://repo.radeon.com/rocm/apt/$env:ROCM_VERSION/pool/main/r/rocwmma-dev/rocwmma-dev_1.7.0.60400-47~22.04_amd64.deb"
           7z x rocwmma.deb
           7z x data.tar
 
