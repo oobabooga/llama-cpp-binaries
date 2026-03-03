@@ -73,7 +73,7 @@ jobs:
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: Build Wheel ${{ matrix.os }} ${{ matrix.pyver }} Vulkan
+    name: ${{ matrix.os }} Vulkan
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -168,5 +168,5 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: textgen-webui-wheels
+          name: vulkan-${{ runner.os }}
           path: ./dist/*.whl

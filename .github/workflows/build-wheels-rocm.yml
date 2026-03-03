@@ -25,4 +25,3 @@ jobs:
     uses: ./.github/workflows/build-wheels-rocm-full.yml
     with:
       version: ${{ inputs.version }}
-      config: 'rename:1'

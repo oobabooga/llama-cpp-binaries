@@ -1,4 +1,4 @@
-name: Build MacOS Wheels
+name: Build macOS Wheels
 
 on:
   workflow_dispatch:
@@ -70,7 +70,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: macos-arm64-wheels
+          name: macos-arm64
           path: ./dist/*.whl
 
   build_wheels_x64:
@@ -121,5 +121,5 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: macos-x64-wheels
+          name: macos-x64
           path: ./dist/*.whl

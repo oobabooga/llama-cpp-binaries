@@ -1,4 +1,4 @@
-name: Build CPU-only Wheels
+name: Build CPU Wheels
 
 on:
   workflow_dispatch:
@@ -73,7 +73,7 @@ jobs:
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: ${{ matrix.os }} ${{ matrix.pyver }} CPU
+    name: ${{ matrix.os }} CPU
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -124,5 +124,5 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: cpu
+          name: cpu-${{ runner.os }}
           path: ./dist/*.whl

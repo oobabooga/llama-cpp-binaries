@@ -59,7 +59,6 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
               'pyver' = @("3.14")
-              'rename' = @('1')
           }
 
           if ($env:CONFIGIN -ne 'Default') {$env:CONFIGIN.split(';').foreach({$matrix[$_.split(':')[0]] = $_.split(':')[1].split(',')})}
@@ -74,7 +73,7 @@ jobs:
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: Build ${{ matrix.os }} ROCm ${{ matrix.rename == '1' && 'Textgen Wheel' || 'Wheel' }} ${{ matrix.pyver }}
+    name: ${{ matrix.os }} ROCm
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -209,5 +208,5 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: 'rocm-wheels-${{ runner.os }}'
+          name: rocm-${{ runner.os }}
           path: ./dist/*.whl
