@@ -83,7 +83,7 @@ jobs:
         shell: pwsh
     env:
       ROCM_VERSION: '6.4'
-      HIPSDK_INSTALLER_VERSION: '24.Q4'
+      HIPSDK_INSTALLER_VERSION: '25.Q3'
 
     steps:
       - name: Free Disk Space
