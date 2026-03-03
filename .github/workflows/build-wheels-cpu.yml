@@ -99,7 +99,7 @@ jobs:
       - name: Build Wheel
         run: |
           $env:VERBOSE = '1'
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
+          $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
 
           # Statically link MSVC runtime to remove the Visual C++ Redistributable dependency.
           if ($IsWindows) {

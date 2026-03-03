@@ -167,7 +167,7 @@ jobs:
           } else {
             $generator = 'Unix Makefiles'
           }
-          $env:CMAKE_ARGS = "-G '$generator' -DCMAKE_BUILD_TYPE=Release -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
+          $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
           if ($IsLinux) {
             $env:CMAKE_ARGS += " -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_HIP_FLAGS='-mllvm --amdgpu-unroll-threshold-local=600'"
           } else {
@@ -176,7 +176,7 @@ jobs:
           }
           $buildtag = "+rocm$env:ROCM_VERSION"
 
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
 
           # Copy HIP runtime libraries for Windows
           if (-not $IsLinux) {
