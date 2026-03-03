@@ -176,8 +176,7 @@ jobs:
           }
           $buildtag = "+rocm$env:ROCM_VERSION"
 
-          $lto = if ($IsLinux) { 'off' } else { 'on' }
-          $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_LTO=$lto -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
 
           # Copy HIP runtime libraries for Windows
           if (-not $IsLinux) {
