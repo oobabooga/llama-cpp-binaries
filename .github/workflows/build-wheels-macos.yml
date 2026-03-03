@@ -105,7 +105,7 @@ jobs:
           XCODEBINPATH="${XCODEDEV}/Toolchains/XcodeDefault.xctoolchain/usr/bin"
 
           # Set common arguments
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
 
           # Always set the SDK root to avoid 'System' library not found errors
           export SDKROOT="${XCODEDEV}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
@@ -145,7 +145,7 @@ jobs:
           # x86_64 build with specific flags
           echo "Building for x86_64 architecture"
           export CMAKE_OSX_ARCHITECTURES="x86_64"
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGGML_METAL=on -DGGML_METAL_EMBED_LIBRARY=on"
           export ARCHFLAGS="-arch x86_64"
           VERBOSE=1 python -m build --wheel
 

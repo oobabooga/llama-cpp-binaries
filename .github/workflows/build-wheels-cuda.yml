@@ -137,13 +137,13 @@ jobs:
           $cudaVersion = $env:CUDAVER.Remove($env:CUDAVER.LastIndexOf('.')).Replace('.','')
 
           $env:VERBOSE = '1'
-          $env:CMAKE_ARGS = '-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all'
+          $env:CMAKE_ARGS = '-DGGML_CUDA=on'
 
           if ($IsWindows) {
               $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
           }
 
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off $env:CMAKE_ARGS"
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on $env:CMAKE_ARGS"
 
           if ($env:AVXVER -eq 'AVX') {
             $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'
