@@ -41,7 +41,7 @@ jobs:
 
       - name: Build Wheel
         run: |
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_METAL=on -DGGML_METAL_USE_BF16=on -DGGML_METAL_EMBED_LIBRARY=on"
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_METAL=on -DGGML_METAL_USE_BF16=on -DGGML_METAL_EMBED_LIBRARY=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
           export MACOSX_DEPLOYMENT_TARGET="13.3"
           export CMAKE_OSX_ARCHITECTURES="arm64"
           export ARCHFLAGS="-arch arm64"
@@ -94,7 +94,7 @@ jobs:
 
       - name: Build Wheel
         run: |
-          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DGGML_METAL=off"
+          export CMAKE_ARGS="-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DGGML_METAL=off -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
           export MACOSX_DEPLOYMENT_TARGET="13.3"
           export CMAKE_OSX_ARCHITECTURES="x86_64"
           export ARCHFLAGS="-arch x86_64"
