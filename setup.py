@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 
@@ -27,7 +28,7 @@ class CMakeBuild(build_ext):
 
     def build_cmake(self, ext):
         # Get CMAKE_ARGS from environment
-        cmake_args = os.environ.get("CMAKE_ARGS", "").split()
+        cmake_args = shlex.split(os.environ.get("CMAKE_ARGS", ""))
 
         # Create build directory
         build_dir = os.path.abspath("build")
@@ -46,13 +47,10 @@ class CMakeBuild(build_ext):
             ])
         elif system == "Darwin":  # macOS
             cmake_args.extend([
-                "-DCMAKE_INSTALL_RPATH=@executable_path",
+                "-DCMAKE_INSTALL_RPATH=@loader_path",
                 "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
                 "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
             ])
-
-        # Disable Curl
-        cmake_args.append("-DLLAMA_CURL=OFF")
 
         # Configure with CMake
         cmake_cmd = ["cmake", llama_cpp_dir] + cmake_args

@@ -59,7 +59,6 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
               'pyver' = @("3.11")
-              'avxver' = @("AVX2", "AVX")
           }
 
           if ($env:CONFIGIN -ne 'Default') {$env:CONFIGIN.split(';').foreach({$matrix[$_.split(':')[0]] = $_.split(':')[1].split(',')})}
@@ -74,7 +73,7 @@ jobs:
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: Build Wheel ${{ matrix.os }} ${{ matrix.pyver }} Vulkan ${{ matrix.avxver }}
+    name: Build Wheel ${{ matrix.os }} ${{ matrix.pyver }} Vulkan
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -83,9 +82,7 @@ jobs:
       run:
         shell: pwsh
     env:
-      AVXVER: ${{ matrix.avxver }}
-      PCKGVER: ${{ inputs.version }}
-      VULKAN_VERSION: 1.4.309.0
+      VULKAN_VERSION: 1.4.313.2
 
     steps:
       - name: Add MSBuild to PATH
@@ -94,30 +91,21 @@ jobs:
         with:
           vs-version: '[17.0,18.0)'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'oobabooga/llama-cpp-binaries'
           ref: ${{ inputs.version }}
           submodules: 'recursive'
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.pyver }}
-
-      - name: Setup Mamba
-        uses: conda-incubator/setup-miniconda@v3.1.0
-        with:
-          activate-environment: "TGW"
-          python-version: ${{ matrix.pyver }}
-          miniforge-version: latest
-          add-pip-as-python-dependency: true
-          auto-activate-base: false
 
       # Install Vulkan SDK on Windows
       - name: Install Vulkan SDK (Windows)
         if: runner.os == 'Windows'
         run: |
-          curl.exe -o $env:RUNNER_TEMP/VulkanSDK-Installer.exe -L "https://sdk.lunarg.com/sdk/download/${env:VULKAN_VERSION}/windows/VulkanSDK-${env:VULKAN_VERSION}-Installer.exe"
+          curl.exe -o $env:RUNNER_TEMP/VulkanSDK-Installer.exe -L "https://sdk.lunarg.com/sdk/download/${env:VULKAN_VERSION}/windows/vulkansdk-windows-X64-${env:VULKAN_VERSION}.exe"
           & "$env:RUNNER_TEMP\VulkanSDK-Installer.exe" --accept-licenses --default-answer --confirm-command install
           Add-Content $env:GITHUB_ENV "VULKAN_SDK=C:\VulkanSDK\${env:VULKAN_VERSION}"
           Add-Content $env:GITHUB_PATH "C:\VulkanSDK\${env:VULKAN_VERSION}\bin"
@@ -125,13 +113,12 @@ jobs:
       # Install Vulkan SDK on Linux
       - name: Install Vulkan SDK (Linux)
         if: runner.os == 'Linux'
+        shell: bash
         run: |
-          if ($IsLinux) {
-            bash -c "wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -"
-            bash -c "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list https://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
-            bash -c "sudo apt-get update -y"
-            bash -c "sudo apt-get install -y build-essential mesa-vulkan-drivers vulkan-sdk libcurl4-openssl-dev"
-          }
+          wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list https://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential mesa-vulkan-drivers vulkan-sdk
 
       - name: Install Dependencies
         run: |
@@ -139,12 +126,9 @@ jobs:
 
       - name: Build Wheel
         run: |
-          $packageVersion = [version]$env:PCKGVER.TrimStart('v')
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = '-DGGML_VULKAN=on'
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on $env:CMAKE_ARGS"
-          if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'avx'}
-          if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'; $cputag = 'basic'}
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on $env:CMAKE_ARGS"
 
           # Set Vulkan SDK path for Windows
           if ($IsWindows) {
@@ -166,8 +150,7 @@ jobs:
           # Note: Unlike CUDA, Vulkan libraries are usually found by the OS's dynamic linker
           # so we don't typically need to package the libraries with the wheel
 
-          # Use vulkan tag instead of cuda tag
-          $buildtag = "+vulkan$cputag"
+          $buildtag = "+vulkan"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
       - name: Upload files to a GitHub release
@@ -182,7 +165,7 @@ jobs:
           make_latest: false
           overwrite: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
           name: textgen-webui-wheels

@@ -17,4 +17,4 @@ include = ["llama_cpp_binaries*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-"llama_cpp_binaries" = ["bin/*"]
+"llama_cpp_binaries" = ["bin/**"]

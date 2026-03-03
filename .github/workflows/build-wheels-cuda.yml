@@ -59,8 +59,7 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
               'pyver' = @("3.11")
-              'cuda' = @("12.4.1")
-              'avxver' = @("AVX2", "AVX")
+              'cuda' = @("12.4.1", "13.1.0")
           }
 
           if ($env:CONFIGIN -ne 'Default') {$env:CONFIGIN.split(';').foreach({$matrix[$_.split(':')[0]] = $_.split(':')[1].split(',')})}
@@ -75,7 +74,7 @@ jobs:
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: Build Wheel ${{ matrix.os }} ${{ matrix.pyver }} ${{ matrix.cuda }} ${{ matrix.avxver }}
+    name: Build Wheel ${{ matrix.os }} ${{ matrix.pyver }} ${{ matrix.cuda }}
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -85,8 +84,6 @@ jobs:
         shell: pwsh
     env:
       CUDAVER: ${{ matrix.cuda }}
-      AVXVER: ${{ matrix.avxver }}
-      PCKGVER: ${{ inputs.version }}
 
     steps:
       - name: Free Disk Space
@@ -100,13 +97,13 @@ jobs:
           large-packages: false
           swap-storage: true
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'oobabooga/llama-cpp-binaries'
           ref: ${{ inputs.version }}
           submodules: 'recursive'
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.pyver }}
 
@@ -133,26 +130,16 @@ jobs:
 
       - name: Build Wheel
         run: |
-          $packageVersion = [version]$env:PCKGVER.TrimStart('v')
           $cudaVersion = $env:CUDAVER.Remove($env:CUDAVER.LastIndexOf('.')).Replace('.','')
 
           $env:VERBOSE = '1'
-          $env:CMAKE_ARGS = '-DGGML_CUDA=on'
+          $env:CMAKE_ARGS = '-DGGML_CUDA=on -DGGML_CUDA_CUB_3DOT2=on'
 
           if ($IsWindows) {
               $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
           }
 
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on $env:CMAKE_ARGS"
-
-          if ($env:AVXVER -eq 'AVX') {
-            $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'
-            $cputag = 'avx'
-          }
-          if ($env:AVXVER -eq 'basic') {
-            $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off'
-            $cputag = 'basic'
-          }
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on $env:CMAKE_ARGS"
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
 
@@ -160,10 +147,10 @@ jobs:
           $binDir = "llama_cpp_binaries/bin"
           New-Item -ItemType Directory -Force -Path $binDir | Out-Null
 
+          $cudaMajor = $env:CUDAVER.Split('.')[0]
+
           if ($IsLinux) {
-              if ($env:CUDAVER -eq "12.4.1") {
-                  $libsToFind = @("libcudart.so.12", "libcublas.so.12", "libcublasLt.so.12")
-              }
+              $libsToFind = @("libcudart.so.$cudaMajor", "libcublas.so.$cudaMajor", "libcublasLt.so.$cudaMajor")
 
               foreach ($lib in $libsToFind) {
                   $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH/lib64" -Filter "$lib*" -File | Select-Object -First 1
@@ -175,9 +162,7 @@ jobs:
                   }
               }
           } else {
-              if ($env:CUDAVER -eq "12.4.1") {
-                  $libsToFind = @("cublas64_12.dll", "cudart64_12.dll", "cublasLt64_12.dll")
-              }
+              $libsToFind = @("cublas64_$cudaMajor.dll", "cudart64_$cudaMajor.dll", "cublasLt64_$cudaMajor.dll")
 
               foreach ($lib in $libsToFind) {
                   $foundFiles = Get-ChildItem -Path "$env:CUDA_PATH/bin" -Filter $lib -File | Select-Object -First 1
@@ -190,7 +175,7 @@ jobs:
               }
           }
 
-          $buildtag = "+cu$cudaVersion$cputag"
+          $buildtag = "+cu$cudaVersion"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
       - name: Upload files to a GitHub release
@@ -205,8 +190,8 @@ jobs:
           make_latest: false
           overwrite: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: wheel-${{ matrix.os }}-${{ matrix.cuda }}-${{ matrix.avxver }}
+          name: wheel-${{ matrix.os }}-${{ matrix.cuda }}
           path: ./dist/*.whl

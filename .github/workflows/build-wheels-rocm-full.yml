@@ -59,26 +59,22 @@ jobs:
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
               'pyver' = @("3.11")
-              'avx' = @("AVX", "AVX2")
               'rename' = @('1')
-              'exclude' = @(
-                  @{'os' = 'windows-2022'}
-              )
           }
 
           if ($env:CONFIGIN -ne 'Default') {$env:CONFIGIN.split(';').foreach({$matrix[$_.split(':')[0]] = $_.split(':')[1].split(',')})}
 
           if ($env:EXCLUDEIN -notin ('None','Default')) {
-              $exclusions = $matrix['exclude']
+              $exclusions = @()
               $exclusions += $env:EXCLUDEIN.split(';').replace(':','=').replace(',',"`n") | ConvertFrom-StringData
               $matrix['exclude'] = $exclusions
-          } elseif ($env:EXCLUDEIN -eq 'None') {$matrix.remove('exclude')}
+          }
 
           $matrixOut = ConvertTo-Json $matrix -Compress
           Write-Output ('matrix=' + $matrixOut) >> $env:GITHUB_OUTPUT
 
   build_wheels:
-    name: Build ${{ matrix.os }} ${{ matrix.avx }} ROCm ${{ matrix.rocm }} ${{ matrix.rename == '1' && 'Textgen Wheel' || 'Wheel' }} ${{ matrix.pyver }}
+    name: Build ${{ matrix.os }} ROCm ${{ matrix.rename == '1' && 'Textgen Wheel' || 'Wheel' }} ${{ matrix.pyver }}
     needs: define_matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -87,24 +83,22 @@ jobs:
       run:
         shell: pwsh
     env:
-      PCKGVER: ${{ inputs.version }}
-      # ROCM_VERSION: ${{ matrix.rocm }}
-      ROCM_VERSION: '6.4.4'
-      AVXVER: ${{ matrix.avx }}
+      ROCM_VERSION: '7.2'
+      HIPSDK_INSTALLER_VERSION: '26.Q1'
 
     steps:
       - name: Free Disk Space
         if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@v1.2.0
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: false
+          tool-cache: true
           android: true
           dotnet: true
           haskell: true
           large-packages: false
-          swap-storage: false
+          swap-storage: true
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: 'oobabooga/llama-cpp-binaries'
           ref: ${{ inputs.version }}
@@ -119,33 +113,33 @@ jobs:
           echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/$ROCM_VERSION jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
           echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
           sudo apt update
-          sudo apt install rocm-dev rocblas-dev hipblas-dev -y
+          sudo apt install rocm-hip-sdk -y
 
       - name: Install Windows ROCm SDK
         if: runner.os == 'Windows'
         run: |
-          curl -LO https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-23.Q3-Win10-Win11-For-HIP.exe
-          Start-Process 'AMD-Software-PRO-Edition-23.Q3-Win10-Win11-For-HIP.exe' -ArgumentList '-install' -NoNewWindow -Wait
-          echo "C:\Program Files\AMD\ROCm\5.5\bin" >> $env:GITHUB_PATH
-          echo 'ROCM_PATH=C:\Program Files\AMD\ROCm\5.5' >> $env:GITHUB_ENV
-          echo 'HIP_PATH=C:\Program Files\AMD\ROCm\5.5' >> $env:GITHUB_ENV
+          Invoke-WebRequest -Uri "https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-${env:HIPSDK_INSTALLER_VERSION}-Win11-For-HIP.exe" -OutFile "${env:RUNNER_TEMP}\rocm-install.exe"
+          Start-Process "${env:RUNNER_TEMP}\rocm-install.exe" -ArgumentList '-install' -NoNewWindow -Wait
+          $hipPath = (Resolve-Path 'C:\Program Files\AMD\ROCm\*\bin\clang.exe' | Split-Path | Split-Path)
+          echo "$hipPath\bin" >> $env:GITHUB_PATH
+          echo "ROCM_PATH=$hipPath" >> $env:GITHUB_ENV
+          echo "HIP_PATH=$hipPath" >> $env:GITHUB_ENV
 
-      - uses: actions/setup-python@v4
+      - name: Download rocWMMA headers
+        if: runner.os == 'Windows'
+        run: |
+          curl -o rocwmma.deb "https://repo.radeon.com/rocm/apt/$env:ROCM_VERSION/pool/main/r/rocwmma-dev/rocwmma-dev_2.2.0.70200-43~24.04_amd64.deb"
+          7z x rocwmma.deb
+          7z x data.tar
+
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.pyver }}
-
-      - name: Setup Mamba
-        uses: conda-incubator/setup-miniconda@v3.1.0
-        with:
-          activate-environment: "TGW"
-          python-version: ${{ matrix.pyver }}
-          miniforge-version: latest
-          add-pip-as-python-dependency: true
-          auto-activate-base: false
 
       - name: Install Dependencies
         run: |
-          python -m pip install build cmake scikit-build ninja
+          python -m pip install build cmake
+          if ($IsLinux) { python -m pip install ninja }
 
       - name: Build Wheel
         run: |
@@ -155,34 +149,48 @@ jobs:
             $env:CFLAGS = '-fPIC'
             $env:CXXFLAGS = '-fPIC'
             $env:CMAKE_PREFIX_PATH = '/opt/rocm'
-            $env:GITHUB_PATH = "/opt/rocm/bin:$env:GITHUB_PATH"
+            $env:PATH = "/opt/rocm/bin:$env:PATH"
             $env:ROCM_PATH = "/opt/rocm"
             $env:HIP_PATH = "/opt/rocm"
+            $env:HIP_PLATFORM = "amd"
+            $gputargets = 'gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1151;gfx1150;gfx1200;gfx1201'
           } else {
-            $env:CC = 'C:\Program Files\AMD\ROCm\5.5\bin\clang.exe'
-            $env:CXX = 'C:\Program Files\AMD\ROCm\5.5\bin\clang++.exe'
-            $env:CMAKE_PREFIX_PATH = 'C:\Program Files\AMD\ROCm\5.5'
+            $env:CC = "$env:HIP_PATH\bin\clang.exe"
+            $env:CXX = "$env:HIP_PATH\bin\clang++.exe"
+            $env:CMAKE_PREFIX_PATH = $env:HIP_PATH
+            # Windows: consumer GPUs only (datacenter GPUs don't run on Windows)
+            $gputargets = 'gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201'
           }
           $env:VERBOSE = '1'
-          $packageVersion = [version]$env:PCKGVER.TrimStart('v')
 
-          $gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1201'
-          if ([version]$env:ROCM_VERSION -lt [version]'5.5') {$gputargets = 'gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030'}
+          if ($IsLinux) {
+            $generator = 'Ninja'
+          } else {
+            $generator = 'Unix Makefiles'
+          }
+          $env:CMAKE_ARGS = "-G '$generator' -DCMAKE_BUILD_TYPE=Release -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
+          if ($IsLinux) {
+            $env:CMAKE_ARGS += " -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_HIP_FLAGS='-mllvm --amdgpu-unroll-threshold-local=600'"
+          } else {
+            $rocwmmaInclude = "$($PWD.Path.Replace('\', '/'))/opt/rocm-$env:ROCM_VERSION.0/include/"
+            $env:CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-I$rocwmmaInclude -Wno-ignored-attributes -Wno-nested-anon-types'"
+          }
+          $buildtag = "+rocm$env:ROCM_VERSION"
 
-          if ($env:AVXVER -eq 'AVX') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
-          if ($env:AVXVER -eq 'AVX512') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX512=on -DGPU_TARGETS=$gputargets"}
-          if ($env:AVXVER -eq 'basic') {$env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGGML_AVX=off -DGGML_AVX2=off -DGGML_FMA=off -DGGML_F16C=off -DGPU_TARGETS=$gputargets"}
-          if ($env:AVXVER -eq 'AVX2')
-          {
-              $env:CMAKE_ARGS = "-GNinja -DGGML_HIP=ON -DGPU_TARGETS=$gputargets"
-              $buildtag = "+rocm$env:ROCM_VERSION"
-          } else {$buildtag = "+rocm$env:ROCM_VERSION$env:AVXVER"}
+          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on $env:CMAKE_ARGS"
 
-          $env:CMAKE_ARGS = "-DLLAVA_BUILD=off $env:CMAKE_ARGS"
-          $env:CMAKE_ARGS = "-DLLAMA_CURL=off $env:CMAKE_ARGS"
-          $env:CMAKE_ARGS = "-DGGML_NATIVE=off -DGGML_LTO=on $env:CMAKE_ARGS"
-          $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX $env:CMAKE_ARGS"
-          $packageDir = 'llama_cpp_binaries'
+          # Copy HIP runtime libraries for Windows
+          if (-not $IsLinux) {
+            $binDir = "llama_cpp_binaries/bin"
+            New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+            Copy-Item "$env:HIP_PATH\bin\libhipblas.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\libhipblaslt.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\rocblas.dll" $binDir
+            New-Item -ItemType Directory -Path "$binDir\rocblas\library" -Force | Out-Null
+            Copy-Item "$env:HIP_PATH\bin\rocblas\library\*" "$binDir\rocblas\library\"
+            New-Item -ItemType Directory -Path "$binDir\hipblaslt\library" -Force | Out-Null
+            Copy-Item "$env:HIP_PATH\bin\hipblaslt\library\*" "$binDir\hipblaslt\library\"
+          }
 
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
@@ -198,8 +206,8 @@ jobs:
           make_latest: false
           overwrite: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: steps.upload-release.outcome == 'failure'
         with:
-          name: 'rocm-wheels'
+          name: 'rocm-wheels-${{ runner.os }}'
           path: ./dist/*.whl
