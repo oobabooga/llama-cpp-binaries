@@ -168,7 +168,7 @@ jobs:
           } else {
             $generator = 'Unix Makefiles'
           }
-          $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
+          $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=OFF -DGPU_TARGETS=$gputargets"
           if ($IsLinux) {
             $env:CMAKE_ARGS += " -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_HIP_FLAGS='-mllvm --amdgpu-unroll-threshold-local=600'"
           } else {
