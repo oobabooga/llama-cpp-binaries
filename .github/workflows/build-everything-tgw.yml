@@ -48,7 +48,7 @@ jobs:
       version: ${{ inputs.version }}
       
   build_wheels_macos:
-    name: MacOS Metal Wheels
+    name: MacOS Wheels
     uses: ./.github/workflows/build-wheels-macos.yml
     with:
       version: ${{ inputs.version }}
