@@ -58,7 +58,7 @@ jobs:
         run: |
           $matrix = @{
               'os' = @('ubuntu-22.04', 'windows-2022')
-              'pyver' = @("3.14")
+              'pyver' = @("3.11")
           }
 
           if ($env:CONFIGIN -ne 'Default') {$env:CONFIGIN.split(';').foreach({$matrix[$_.split(':')[0]] = $_.split(':')[1].split(',')})}
