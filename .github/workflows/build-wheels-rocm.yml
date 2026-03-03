@@ -183,8 +183,8 @@ jobs:
           if (-not $IsLinux) {
             $binDir = "llama_cpp_binaries/bin"
             New-Item -ItemType Directory -Path $binDir -Force | Out-Null
-            Copy-Item "$env:HIP_PATH\bin\libhipblas.dll" $binDir
-            Copy-Item "$env:HIP_PATH\bin\libhipblaslt.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\hipblas.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\hipblaslt.dll" $binDir
             Copy-Item "$env:HIP_PATH\bin\rocblas.dll" $binDir
             New-Item -ItemType Directory -Path "$binDir\rocblas\library" -Force | Out-Null
             Copy-Item "$env:HIP_PATH\bin\rocblas\library\*" "$binDir\rocblas\library\"
