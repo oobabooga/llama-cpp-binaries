@@ -48,11 +48,9 @@ jobs:
 
           VERBOSE=1 python -m build --wheel
 
-          # Rename universal2 wheels to arm64 and create aarch64 copies
+          # Rename universal2 wheels to arm64
           for file in ./dist/*universal2.whl; do
-            arm64_file="${file/universal2/arm64}"
-            mv "$file" "$arm64_file"
-            cp "$arm64_file" "${arm64_file/arm64/aarch64}"
+            mv "$file" "${file/universal2/arm64}"
           done
 
       - name: Upload files to a GitHub release
