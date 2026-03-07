@@ -101,11 +101,6 @@ jobs:
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
 
-          # Statically link MSVC runtime to remove the Visual C++ Redistributable dependency.
-          if ($IsWindows) {
-              $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
-          }
-
           $env:LLAMA_CPP_BUILD_JOBS = "2"
 
           $buildtag = "+cpu"

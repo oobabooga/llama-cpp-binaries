@@ -135,10 +135,6 @@ jobs:
           $env:VERBOSE = '1'
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DGGML_CUDA_CUB_3DOT2=on'
 
-          if ($IsWindows) {
-              $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
-          }
-
           $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"

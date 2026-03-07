@@ -135,11 +135,6 @@ jobs:
             $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:VULKAN_SDK $env:CMAKE_ARGS"
           }
 
-          # Statically link MSVC runtime to remove the Visual C++ Redistributable dependency.
-          if ($IsWindows) {
-              $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
-          }
-
           $env:LLAMA_CPP_BUILD_JOBS = "2"
 
           # Create bin directory for any dependent libraries
