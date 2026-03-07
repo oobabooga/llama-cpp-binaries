@@ -126,7 +126,12 @@ jobs:
         run: nvcc --version
 
       - name: Install Dependencies
-        run: python -m pip install build
+        run: |
+          if ($IsLinux) {
+            sudo apt-get update
+            sudo apt-get install -y build-essential libssl-dev
+          }
+          python -m pip install build
 
       - name: Build Wheel
         run: |
@@ -136,6 +141,10 @@ jobs:
           $env:CMAKE_ARGS = '-DGGML_CUDA=on -DGGML_CUDA_CUB_3DOT2=on'
 
           $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
+
+          if ($IsWindows) {
+            $env:CMAKE_ARGS += " -DLLAMA_BUILD_BORINGSSL=ON"
+          }
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
 

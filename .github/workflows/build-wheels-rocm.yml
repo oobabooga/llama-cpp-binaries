@@ -113,7 +113,7 @@ jobs:
           echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/$ROCM_VERSION jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
           echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
           sudo apt update
-          sudo apt install rocm-hip-sdk -y
+          sudo apt install -y libssl-dev rocm-hip-sdk
 
       - name: Install Windows ROCm SDK
         if: runner.os == 'Windows'
@@ -178,6 +178,10 @@ jobs:
           $buildtag = "+rocm$env:ROCM_VERSION"
 
           $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off $env:CMAKE_ARGS"
+
+          if (-not $IsLinux) {
+            $env:CMAKE_ARGS += " -DLLAMA_BUILD_BORINGSSL=ON"
+          }
 
           # Copy HIP runtime libraries for Windows
           if (-not $IsLinux) {
