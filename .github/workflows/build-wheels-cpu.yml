@@ -106,6 +106,8 @@ jobs:
               $env:CMAKE_ARGS = $env:CMAKE_ARGS + ' -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
           }
 
+          $env:LLAMA_CPP_BUILD_JOBS = "2"
+
           $buildtag = "+cpu"
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
