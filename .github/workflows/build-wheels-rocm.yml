@@ -152,7 +152,7 @@ jobs:
             $env:ROCM_PATH = "/opt/rocm"
             $env:HIP_PATH = "/opt/rocm"
             $env:HIP_PLATFORM = "amd"
-            $env:CMAKE_BUILD_PARALLEL_LEVEL = "1"
+            $env:LLAMA_CPP_BUILD_JOBS = "2"
             $gputargets = 'gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1151;gfx1150;gfx1200;gfx1201'
           } else {
             $env:CC = "$env:HIP_PATH\bin\clang.exe"
