@@ -82,8 +82,8 @@ jobs:
       run:
         shell: pwsh
     env:
-      ROCM_VERSION: '6.4'
-      HIPSDK_INSTALLER_VERSION: '25.Q3'
+      ROCM_VERSION: '7.2'
+      HIPSDK_INSTALLER_VERSION: '26.Q1'
 
     steps:
       - name: Free Disk Space
@@ -109,7 +109,6 @@ jobs:
         run: |
           [ ! -d /etc/apt/keyrings ] && sudo mkdir --parents --mode=0755 /etc/apt/keyrings
           wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
-          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/$ROCM_VERSION/ubuntu jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
           echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/$ROCM_VERSION jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
           echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
           sudo apt update
@@ -118,7 +117,7 @@ jobs:
       - name: Install Windows ROCm SDK
         if: runner.os == 'Windows'
         run: |
-          Invoke-WebRequest -Uri "https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-${env:HIPSDK_INSTALLER_VERSION}-Win10-Win11-For-HIP.exe" -OutFile "${env:RUNNER_TEMP}\rocm-install.exe"
+          Invoke-WebRequest -Uri "https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-${env:HIPSDK_INSTALLER_VERSION}-Win11-For-HIP.exe" -OutFile "${env:RUNNER_TEMP}\rocm-install.exe"
           Start-Process "${env:RUNNER_TEMP}\rocm-install.exe" -ArgumentList '-install' -NoNewWindow -Wait
           $hipPath = (Resolve-Path 'C:\Program Files\AMD\ROCm\*\bin\clang.exe' | Split-Path | Split-Path)
           echo "$hipPath\bin" >> $env:GITHUB_PATH
@@ -128,7 +127,7 @@ jobs:
       - name: Download rocWMMA headers
         if: runner.os == 'Windows'
         run: |
-          curl -o rocwmma.deb "https://repo.radeon.com/rocm/apt/$env:ROCM_VERSION/pool/main/r/rocwmma-dev/rocwmma-dev_1.7.0.60400-47~22.04_amd64.deb"
+          curl -o rocwmma.deb "https://repo.radeon.com/rocm/apt/$env:ROCM_VERSION/pool/main/r/rocwmma-dev/rocwmma-dev_2.2.0.70200-43~24.04_amd64.deb"
           7z x rocwmma.deb
           7z x data.tar
 
@@ -168,7 +167,7 @@ jobs:
           } else {
             $generator = 'Unix Makefiles'
           }
-          $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=OFF -DGPU_TARGETS=$gputargets"
+          $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
           if ($IsLinux) {
             $env:CMAKE_ARGS += " -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_HIP_FLAGS='-mllvm --amdgpu-unroll-threshold-local=600'"
           } else {
@@ -187,8 +186,8 @@ jobs:
           if (-not $IsLinux) {
             $binDir = "llama_cpp_binaries/bin"
             New-Item -ItemType Directory -Path $binDir -Force | Out-Null
-            Copy-Item "$env:HIP_PATH\bin\hipblas.dll" $binDir
-            Copy-Item "$env:HIP_PATH\bin\hipblaslt.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\libhipblas.dll" $binDir
+            Copy-Item "$env:HIP_PATH\bin\libhipblaslt.dll" $binDir
             Copy-Item "$env:HIP_PATH\bin\rocblas.dll" $binDir
             New-Item -ItemType Directory -Path "$binDir\rocblas\library" -Force | Out-Null
             Copy-Item "$env:HIP_PATH\bin\rocblas\library\*" "$binDir\rocblas\library\"
