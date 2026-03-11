@@ -127,10 +127,6 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y build-essential mesa-vulkan-drivers vulkan-sdk libssl-dev
 
-      - name: Install Ninja
-        if: runner.os == 'Windows'
-        run: choco install ninja
-
       - name: Install Dependencies
         run: |
           python -m pip install build
@@ -143,7 +139,7 @@ jobs:
 
           # Set Vulkan SDK path and statically link BoringSSL for Windows
           if ($IsWindows) {
-            $env:CMAKE_ARGS = "-G 'Ninja' -DCMAKE_PREFIX_PATH=$env:VULKAN_SDK -DLLAMA_BUILD_BORINGSSL=ON $env:CMAKE_ARGS"
+            $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:VULKAN_SDK -DLLAMA_BUILD_BORINGSSL=ON $env:CMAKE_ARGS"
           }
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
