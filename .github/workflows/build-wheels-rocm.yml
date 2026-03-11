@@ -95,7 +95,7 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: false
-          swap-storage: true
+          swap-storage: false
 
       - uses: actions/checkout@v6
         with:
