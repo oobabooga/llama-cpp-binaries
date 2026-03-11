@@ -149,10 +149,6 @@ jobs:
       - name: Build Wheel
         run: |
           if ($IsLinux) {
-            $env:CC = '/opt/rocm/llvm/bin/clang'
-            $env:CXX = '/opt/rocm/llvm/bin/clang++'
-            $env:CFLAGS = '-fPIC'
-            $env:CXXFLAGS = '-fPIC'
             $env:CMAKE_PREFIX_PATH = '/opt/rocm'
             $env:PATH = "/opt/rocm/bin:$env:PATH"
             $env:ROCM_PATH = "/opt/rocm"
@@ -197,9 +193,7 @@ jobs:
             Copy-Item "$env:HIP_PATH\bin\hipblaslt\library\*" "$binDir\hipblaslt\library\"
           }
 
-          if ($IsLinux) {
-            $env:LLAMA_CPP_BUILD_JOBS = [Environment]::ProcessorCount
-          }
+          $env:LLAMA_CPP_BUILD_JOBS = [Environment]::ProcessorCount
 
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
 
