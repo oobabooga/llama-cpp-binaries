@@ -31,6 +31,12 @@ jobs:
           ref: ${{ inputs.version }}
           submodules: 'recursive'
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2.20
+        with:
+          key: macos-arm64
+          evict-old-files: 14d
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
@@ -82,6 +88,12 @@ jobs:
           repository: 'oobabooga/llama-cpp-binaries'
           ref: ${{ inputs.version }}
           submodules: 'recursive'
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2.20
+        with:
+          key: macos-x64
+          evict-old-files: 14d
 
       - uses: actions/setup-python@v6
         with:
