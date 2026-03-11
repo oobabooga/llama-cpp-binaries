@@ -99,6 +99,10 @@ jobs:
         with:
           python-version: ${{ matrix.pyver }}
 
+      - name: Install Ninja
+        if: runner.os == 'Windows'
+        run: choco install ninja
+
       - name: Install Dependencies
         run: |
           if ($IsLinux) {
@@ -113,7 +117,7 @@ jobs:
           $env:CMAKE_ARGS = "-DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=off -DGGML_BACKEND_DL=on -DGGML_CPU_ALL_VARIANTS=on -DGGML_RPC=on -DLLAMA_BUILD_TESTS=off -DLLAMA_BUILD_EXAMPLES=off"
 
           if ($IsWindows) {
-            $env:CMAKE_ARGS += " -DLLAMA_BUILD_BORINGSSL=ON"
+            $env:CMAKE_ARGS += " -G 'Ninja' -DLLAMA_BUILD_BORINGSSL=ON"
           }
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
