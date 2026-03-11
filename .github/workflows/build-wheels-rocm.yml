@@ -86,6 +86,17 @@ jobs:
       HIPSDK_INSTALLER_VERSION: '26.Q1'
 
     steps:
+      - name: Free Disk Space
+        if: runner.os == 'Linux'
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          swap-storage: false
+
       - uses: actions/checkout@v6
         with:
           repository: 'oobabooga/llama-cpp-binaries'
