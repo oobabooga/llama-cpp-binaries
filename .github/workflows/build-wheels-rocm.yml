@@ -86,17 +86,6 @@ jobs:
       HIPSDK_INSTALLER_VERSION: '26.Q1'
 
     steps:
-      - name: Free Disk Space
-        if: runner.os == 'Linux'
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          swap-storage: false
-
       - uses: actions/checkout@v6
         with:
           repository: 'oobabooga/llama-cpp-binaries'
@@ -145,7 +134,6 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install build cmake
-          if ($IsLinux) { python -m pip install ninja }
 
       - name: Build Wheel
         run: |
@@ -169,11 +157,7 @@ jobs:
           }
           $env:VERBOSE = '1'
 
-          if ($IsLinux) {
-            $generator = 'Ninja'
-          } else {
-            $generator = 'Unix Makefiles'
-          }
+          $generator = 'Unix Makefiles'
           $env:CMAKE_ARGS = "-G '$generator' -DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON -DGPU_TARGETS=$gputargets"
           if ($IsLinux) {
             $env:CMAKE_ARGS += " -DCMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_HIP_FLAGS='-mllvm --amdgpu-unroll-threshold-local=600'"
@@ -200,6 +184,10 @@ jobs:
             Copy-Item "$env:HIP_PATH\bin\rocblas\library\*" "$binDir\rocblas\library\"
             New-Item -ItemType Directory -Path "$binDir\hipblaslt\library" -Force | Out-Null
             Copy-Item "$env:HIP_PATH\bin\hipblaslt\library\*" "$binDir\hipblaslt\library\"
+          }
+
+          if ($IsLinux) {
+            $env:LLAMA_CPP_BUILD_JOBS = [Environment]::ProcessorCount
           }
 
           python -m build --wheel -C--build-option=egg_info "-C--build-option=--tag-build=$buildtag"
