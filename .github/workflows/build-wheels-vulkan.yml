@@ -85,11 +85,13 @@ jobs:
       VULKAN_VERSION: 1.4.313.2
 
     steps:
-      - name: Add MSBuild to PATH
+      - name: Install Ninja
         if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: '[17.0,18.0)'
+        run: choco install ninja
+
+      - name: Setup MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
 
       - uses: actions/checkout@v6
         with:
@@ -139,7 +141,7 @@ jobs:
 
           # Set Vulkan SDK path and statically link BoringSSL for Windows
           if ($IsWindows) {
-            $env:CMAKE_ARGS = "-DCMAKE_PREFIX_PATH=$env:VULKAN_SDK -DLLAMA_BUILD_BORINGSSL=ON $env:CMAKE_ARGS"
+            $env:CMAKE_ARGS = "-G 'Ninja' -DCMAKE_PREFIX_PATH=$env:VULKAN_SDK -DLLAMA_BUILD_BORINGSSL=ON $env:CMAKE_ARGS"
           }
 
           $env:LLAMA_CPP_BUILD_JOBS = "2"
