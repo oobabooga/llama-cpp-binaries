@@ -22,4 +22,4 @@ server_path = llama_cpp_binaries.get_binary_path()
 process = subprocess.Popen([server_path, "--help"])
 ```
 
-For a more detailed example, consult: https://github.com/oobabooga/text-generation-webui/blob/main/modules/llama_cpp_server.py
+For a more detailed example, consult: https://github.com/oobabooga/textgen/blob/main/modules/llama_cpp_server.py
